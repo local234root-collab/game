@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تحدي القص والميزان</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{--bg1:#ffe9c9;--bg2:#ffc4dc;--card:rgba(255,255,255,.72);--bd:rgba(255,255,255,.9);--tx:#2a1a3d;--mut:#7b6a8f;--ac:#ff6b2c;--acd:#c2410c;--ac2:#ffd43b;--good:#2fbf71;--glow:rgba(255,107,44,.45);--board1:#f3c98b;--board2:#d9a05b;--shadow:rgba(60,20,90,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1a1040;--bg2:#4a1d6e;--card:rgba(255,255,255,.08);--bd:rgba(255,255,255,.16);--tx:#f7f0ff;--mut:#b9a8d6;--glow:rgba(255,160,60,.5);--board1:#7a4b2a;--board2:#4e2e19;--shadow:rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--bg1:#1a1040;--bg2:#4a1d6e;--card:rgba(255,255,255,.08);--bd:rgba(255,255,255,.16);--tx:#f7f0ff;--mut:#b9a8d6;--glow:rgba(255,160,60,.5);--board1:#7a4b2a;--board2:#4e2e19;--shadow:rgba(0,0,0,.45)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;color:var(--tx);font-family:"Cairo",system-ui,"Segoe UI",Tahoma,Arial,sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;display:flex;justify-content:center;overflow-x:hidden}
+.bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.bg span{position:absolute;font-size:38px;opacity:.16;animation:fl 14s linear infinite}
+@keyframes fl{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-20vh) rotate(360deg)}}
+#app{position:relative;width:100%;max-width:480px;padding:14px 16px 28px;text-align:center}
+.logo{font-size:27px;white-space:nowrap;font-weight:900;margin:10px 0 2px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 var(--shadow))}
+.sub{color:var(--mut);font-weight:600;margin:0 0 10px}
+.card{background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:16px;margin:12px 0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px var(--shadow)}
+.pc{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:8px 12px;margin:8px 0}
+.pc i{font-style:normal;font-size:34px}
+.pc input{flex:1;min-width:0;font:inherit;font-weight:800;font-size:17px;padding:8px;border-radius:10px;border:0;background:transparent;color:var(--tx);text-align:center;outline:2px solid transparent}
+.pc input:focus{outline-color:var(--ac)}
+.vs{font-weight:900;font-size:20px;color:var(--ac);margin:-2px 0}
+button{font:inherit;font-weight:900;font-size:18px;color:#fff;border:0;border-radius:16px;padding:13px 34px;cursor:pointer;margin:8px;background:linear-gradient(180deg,#ffb347,var(--ac));box-shadow:0 5px 0 var(--acd),0 10px 22px var(--glow);text-shadow:0 2px 0 rgba(0,0,0,.2);transition:transform .08s,box-shadow .08s}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--acd),0 4px 10px var(--glow)}
+button:disabled{opacity:.5}
+.hide{display:none!important}
+.code{font-size:44px;font-weight:900;letter-spacing:10px;direction:ltr;color:var(--ac);margin:6px 0}
+.hud{display:flex;align-items:stretch;gap:8px}
+.hud>div{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:16px;background:var(--card);border:2px solid var(--bd);transition:all .3s;text-align:start}
+.hud i{font-style:normal;font-size:30px}
+.hud span{flex:1;font-weight:800;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hud b{font-size:20px;font-weight:900;color:var(--ac)}.hud small{font-size:11px;margin-inline-start:2px;color:var(--mut)}
+.hud .on{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow),0 8px 20px var(--shadow);transform:scale(1.04)}
+.rnd{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 4px;font-weight:800;color:var(--mut)}
+#pips{display:flex;gap:6px}#pips i{width:12px;height:12px;border-radius:50%;background:var(--bd)}
+#pips i.d{background:var(--good)}#pips i.c{background:var(--ac);box-shadow:0 0 10px var(--ac)}
+#turn{font-size:20px;margin:2px 0}#turn b{color:var(--ac)}
+.board{position:relative;margin:8px auto;width:100%;max-width:320px;padding:18px 0 14px;border-radius:26px;background:radial-gradient(circle at 50% 45%,var(--board1),var(--board2));border:3px solid rgba(255,255,255,.25);box-shadow:inset 0 0 40px rgba(0,0,0,.25),0 14px 30px var(--shadow)}
+.tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#ffe066,var(--ac2));color:#4a2c00;font-weight:900;padding:2px 18px;border-radius:20px;box-shadow:0 3px 0 #c99700;white-space:nowrap}
+#fruit{position:relative;width:260px;height:240px;margin:0 auto;touch-action:none;cursor:crosshair;user-select:none;direction:ltr;filter:drop-shadow(0 12px 10px rgba(0,0,0,.35))}
+.h{position:absolute;inset:0;width:100%;height:100%;transition:transform .5s cubic-bezier(.2,1.5,.4,1)}
+#trail{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px var(--ac))}
+.shake{animation:sh .35s}
+@keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+#hint{font-weight:700;color:var(--mut);margin:12px 0 0;min-height:26px}
+.pt{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--ac2);pointer-events:none;animation:pt .7s ease-out forwards}
+@keyframes pt{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.scale{direction:ltr;position:relative;height:178px;margin-top:10px}
+.beam{position:absolute;top:34px;left:12%;width:76%;height:10px;border-radius:5px;background:linear-gradient(180deg,#ffe066,#e0a800);box-shadow:0 3px 8px var(--shadow);transform:rotate(var(--a,0deg));transition:transform 1.3s cubic-bezier(.3,1.7,.5,1)}
+.pan{position:absolute;top:10px;width:104px;margin-left:-52px;padding:10px 0 12px;border-radius:0 0 54px 54px;background:linear-gradient(180deg,var(--card),rgba(255,255,255,.25));border:2px solid var(--ac2);font-weight:900;font-size:18px;box-shadow:0 8px 16px var(--shadow);transform:rotate(calc(var(--a,0deg)*-1));transform-origin:50% -6px;transition:transform 1.3s cubic-bezier(.3,1.7,.5,1)}
+.pan.l{left:0}.pan.r{left:100%}
+.pole{position:absolute;left:50%;top:36px;width:10px;height:116px;margin-left:-5px;background:linear-gradient(90deg,#e0a800,#ffe066,#e0a800);border-radius:5px}
+.pole::before{content:"";position:absolute;top:-4px;left:-5px;width:20px;height:20px;border-radius:50%;background:var(--ac);border:3px solid #ffe066}
+.pole::after{content:"";position:absolute;bottom:-4px;left:-38px;width:86px;height:12px;border-radius:8px;background:linear-gradient(180deg,#ffe066,#e0a800)}
+#res{font-weight:800;font-size:17px;min-height:30px;animation:pop .5s}
+#res b{color:var(--ac);font-size:22px}
+.stars{font-size:34px;letter-spacing:4px;filter:drop-shadow(0 3px 0 var(--shadow))}.stars .dim{opacity:.2;filter:grayscale(1)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.win{font-size:64px;animation:pop .7s}
+.cf{position:fixed;top:-30px;font-size:26px;pointer-events:none;animation:cf 3.5s linear forwards;z-index:5}
+@keyframes cf{to{transform:translateY(110vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+<div class="bg"><span style="left:6%;animation-delay:0s">🍉</span><span style="left:22%;animation-delay:-4s">🍊</span><span style="left:40%;animation-delay:-8s">🥕</span><span style="left:58%;animation-delay:-2s">🍎</span><span style="left:74%;animation-delay:-10s">🍌</span><span style="left:90%;animation-delay:-6s">🍍</span></div>
+<div id="app">
+<div class="logo">⚖️ تحدي القص والميزان</div>
+
+<div id="online" class="card">
+<p class="sub">🌐 العب أونلاين مع صديقك<br>أنشئ غرفة وأرسل الرمز له</p>
+<div class="pc"><i>🧑</i><input id="myn" placeholder="اسمك" value="لاعب"></div>
+<button id="mk">➕ إنشاء غرفة</button>
+<div class="pc"><i>🔑</i><input id="rc" placeholder="رمز الغرفة" maxlength="4" style="text-transform:uppercase;direction:ltr"></div>
+<button id="jn">🚪 انضم للغرفة</button>
+<div id="wait" class="hide"><div class="code" id="codeShow"></div><p class="sub">⏳ بانتظار انضمام اللاعب الثاني...</p></div>
+<p id="st" class="sub"></p>
+</div>
+
+<div id="setup" class="card">
+<p class="sub">أو العبا على نفس الجهاز 👇<br>الأقل فرقاً بالغرامات يفوز 🏆</p>
+<div class="pc"><i>🦊</i><input id="n1" placeholder="اللاعب الأول" value="لاعب 1"></div>
+<div class="vs">VS</div>
+<div class="pc"><i>🐼</i><input id="n2" placeholder="اللاعب الثاني" value="لاعب 2"></div>
+<button id="start">▶ ابدأ التحدي</button>
+</div>
+
+<div id="game" class="hide">
+<div class="hud"><div id="s1"></div><div id="s2"></div></div>
+<div class="rnd"><span id="rnd"></span><span id="pips"></span></div>
+<p id="turn"></p>
+<div class="board"><div class="tag" id="fname"></div>
+<div id="fruit"><canvas class="h" id="L" width="520" height="480"></canvas><canvas class="h" id="R" width="520" height="480"></canvas><svg id="trail" viewBox="0 0 260 240" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><polyline id="pth" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+<p id="hint"></p>
+<div id="scaleBox" class="hide">
+<div class="scale"><div class="pole"></div>
+<div class="beam" id="beam"><div class="pan l" id="pl">0</div><div class="pan r" id="pr">0</div></div></div>
+<div id="res"></div>
+<button id="next">التالي</button>
+</div>
+</div>
+</div>
+
+<script>
+const ITEMS=[["🍉","بطيخة",1500],["🍎","تفاحة",190],["🥒","خيارة",200],["🍊","برتقالة",230],["🍌","موزة",150],["🥕","جزرة",110],["🍆","باذنجانة",280],["🍅","بندورة",160],["🥔","بطاطا",220],["🍍","أناناس",1100]];
+const ROUNDS=3,W=260,H=240,HINT="🔪 اسحب إصبعك على الفاكهة بأي اتجاه أو شكل لتقصها";
+const PID="tqm-cutbal-",$=id=>document.getElementById(id);
+let names=[],tot=[0,0],p=0,r=0,cutDone=false,fruit,pts=[],drawing=false;
+let mode="local",me=0,peer=null,conn=null,over=false;
+const step=()=>r*2+p;
+const S=2,CW=W*S,CH=H*S;
+function mk(){const c=document.createElement("canvas");c.width=CW;c.height=CH;return[c,c.getContext("2d",{willReadFrequently:true})]}
+function render(e){
+  const[c,g]=mk();
+  const draw=(dx,dy)=>{g.clearRect(0,0,CW,CH);g.font="360px serif";g.textAlign="center";g.textBaseline="middle";g.fillText(e,CW/2+dx,CH/2+dy)};
+  draw(0,0);
+  const d=g.getImageData(0,0,CW,CH).data;let x0=CW,x1=0,y0=CH,y1=0;
+  for(let y=0;y<CH;y++)for(let x=0;x<CW;x++)if(d[(y*CW+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1-x0<50){g.clearRect(0,0,CW,CH);g.fillStyle="#f08c00";g.beginPath();g.ellipse(CW/2,CH/2,200,190,0,0,7);g.fill();return c}
+  draw(CW/2-(x0+x1)/2,CH/2-(y0+y1)/2);
+  return c;
+}
+function paint(el,src){const g=el.getContext("2d");g.clearRect(0,0,CW,CH);if(src)g.drawImage(src,0,0)}
+function fillPoly(g,P){g.fillStyle="#000";g.beginPath();P.forEach((q,i)=>i?g.lineTo(q.x*S,q.y*S):g.moveTo(q.x*S,q.y*S));g.closePath();g.fill()}
+function stats(g){const d=g.getImageData(0,0,CW,CH).data;let m=0,sx=0,sy=0;
+  for(let y=0;y<CH;y++)for(let x=0;x<CW;x++){const a=d[(y*CW+x)*4+3];if(a){m+=a;sx+=a*x;sy+=a*y}}
+  return[m,m?sx/m:0,m?sy/m:0]}
+
+/* ---------- بدء اللعبة ---------- */
+function begin(){
+  tot=[0,0];p=0;r=0;over=false;
+  $("setup").classList.add("hide");$("online").classList.add("hide");$("game").classList.remove("hide");
+  show();
+}
+$("start").onclick=()=>{
+  mode="local";
+  names=[$("n1").value||"لاعب 1",$("n2").value||"لاعب 2"];
+  newFruit(pick());begin();
+};
+function pick(){const i=Math.floor(Math.random()*ITEMS.length);return{i,w:Math.round(ITEMS[i][2]*(.85+Math.random()*.3))}}
+function newFruit(f){const it=ITEMS[f.i];fruit={i:f.i,e:it[0],n:it[1],w:f.w,c:render(it[0])}}
+function mine(){return mode=="local"||p==me}
+function show(){
+  cutDone=false;pts=[];
+  $("s1").innerHTML="<i>🦊</i><span>"+names[0]+"</span><b>"+tot[0]+"<small>غ</small></b>";
+  $("s2").innerHTML="<i>🐼</i><span>"+names[1]+"</span><b>"+tot[1]+"<small>غ</small></b>";
+  $("s1").className=p==0?"on":"";$("s2").className=p==1?"on":"";
+  $("turn").innerHTML="دور <b>"+names[p]+"</b>";$("fname").textContent=fruit.n+" "+fruit.e;$("rnd").textContent="الجولة "+(r+1)+" / "+ROUNDS;$("pips").innerHTML=Array.from({length:ROUNDS},(_,i)=>'<i class="'+(i<r?"d":i==r?"c":"")+'"></i>').join("");
+  $("hint").classList.remove("hide");$("hint").style.color="";$("hint").textContent=mine()?HINT:"⏳ انتظر، "+names[p]+" يقص الآن...";
+  paint($("L"),fruit.c);paint($("R"),null);
+  for(const k of ["L","R"])$(k).style.transform="";
+  $("R").style.visibility="hidden";
+  $("pth").setAttribute("points","");
+  $("scaleBox").classList.add("hide");
+  $("beam").style.setProperty("--a","0deg");
+}
+
+/* ---------- القص ---------- */
+const box=$("fruit");
+function pt(e){const b=box.getBoundingClientRect();return{x:Math.min(W,Math.max(0,(e.clientX-b.left)*W/b.width)),y:Math.min(H,Math.max(0,(e.clientY-b.top)*H/b.height))}}
+function showPath(){$("pth").setAttribute("points",pts.map(q=>q.x.toFixed(1)+","+q.y.toFixed(1)).join(" "))}
+box.addEventListener("pointerdown",e=>{if(cutDone||!mine())return;box.setPointerCapture(e.pointerId);drawing=true;pts=[pt(e)];showPath()});
+box.addEventListener("pointermove",e=>{if(!drawing)return;pts.push(pt(e));showPath()});
+box.addEventListener("pointercancel",()=>{drawing=false;pts=[];showPath()});
+box.addEventListener("pointerup",e=>{
+  if(!drawing)return;drawing=false;pts.push(pt(e));showPath();
+  let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
+  if(len<90)return bad("اسحب أطول عشان تقص الفاكهة");
+  doCut(pts);
+});
+function bad(t){box.classList.remove("shake");void box.offsetWidth;box.classList.add("shake");$("hint").style.color="var(--ac)";$("hint").textContent=t;pts=[];setTimeout(showPath,350)}
+
+function ray(q,dx,dy){
+  let s=1e9;
+  if(dx>0)s=Math.min(s,(W-q.x)/dx);if(dx<0)s=Math.min(s,-q.x/dx);
+  if(dy>0)s=Math.min(s,(H-q.y)/dy);if(dy<0)s=Math.min(s,-q.y/dy);
+  return{x:Math.min(W,Math.max(0,q.x+dx*s)),y:Math.min(H,Math.max(0,q.y+dy*s))};
+}
+function dirTo(a,b){const d=Math.hypot(a.x-b.x,a.y-b.y)||1;return[(a.x-b.x)/d,(a.y-b.y)/d]}
+function far(from,list){for(const q of list)if(Math.hypot(q.x-from.x,q.y-from.y)>12)return q;return list[list.length-1]}
+function tpar(q){const e=.5;
+  if(q.y<e)return q.x;if(q.x>W-e)return W+q.y;if(q.y>H-e)return W+H+(W-q.x);return 2*W+H+(H-q.y)}
+const CORN=[[0,0,0],[W,0,W],[W,H,W+H],[0,H,2*W+H]];
+function regions(path){
+  const T=2*(W+H),t0=tpar(path[0]),tn=tpar(path[path.length-1]);
+  const cw=CORN.map(c=>({x:c[0],y:c[1],d:((c[2]-tn)%T+T)%T})).filter(c=>c.d<((t0-tn)%T+T)%T).sort((a,b)=>a.d-b.d);
+  const cc=CORN.map(c=>({x:c[0],y:c[1],d:((tn-c[2])%T+T)%T})).filter(c=>c.d<((tn-t0)%T+T)%T).sort((a,b)=>a.d-b.d);
+  return[path.concat(cw),path.concat(cc)];
+}
+/* rem = نتيجة جاهزة من اللاعب الآخر {l,rr}: نعيد رسم القص فقط ونعتمد أرقامه */
+function doCut(P,rem){
+  const a=P[0],ka=far(a,P.slice(1)),z=P[P.length-1],kz=far(z,P.slice().reverse().slice(1));
+  const da=dirTo(a,ka),dz=dirTo(z,kz);
+  const path=[ray(a,da[0],da[1])].concat(P,[ray(z,dz[0],dz[1])]);
+  const [A,B]=regions(path);
+  const[ca,ga]=mk(),[cb,gb]=mk();
+  ga.drawImage(fruit.c,0,0);ga.globalCompositeOperation="destination-in";fillPoly(ga,A);
+  gb.drawImage(fruit.c,0,0);gb.globalCompositeOperation="destination-out";fillPoly(gb,A);
+  const[ma,ax,ay]=stats(ga),[mb,bx,by]=stats(gb),T=ma+mb;
+  if(!rem&&(ma<T*.04||mb<T*.04)){return bad("اقطع من وسط الفاكهة، السحبة لازم تمر عليها")}
+  cutDone=true;$("hint").classList.add("hide");$("pth").setAttribute("points","");
+  const l=rem?rem.l:Math.round(fruit.w*ma/T),rr=fruit.w-l,df=Math.abs(l-rr);tot[p]+=df;
+  if(!rem&&mode=="net")conn.send({t:"cut",s:step(),pts:P,l});
+  let vx=ax-bx,vy=ay-by;const m=Math.hypot(vx,vy)||1;vx=vx/m*20;vy=vy/m*20;
+  paint($("L"),ca);paint($("R"),cb);burst(ax/S,ay/S);burst(bx/S,by/S);$("R").style.visibility="visible";
+  requestAnimationFrame(()=>{
+    $("L").style.transform="translate("+vx+"px,"+vy+"px) rotate(3deg)";
+    $("R").style.transform="translate("+-vx+"px,"+-vy+"px) rotate(-3deg)";
+  });
+  setTimeout(()=>{
+    $("scaleBox").classList.remove("hide");
+    $("pl").textContent=l+" غ";$("pr").textContent=rr+" غ";
+    {const st=df<=fruit.w*.02?3:df<=fruit.w*.08?2:1;$("res").innerHTML='<div class="stars">'+"⭐".repeat(st)+'<span class="dim">'+"⭐".repeat(3-st)+'</span></div>الفرق <b>'+df+'</b> غرام — '+["😅 جرّب مرة ثانية","👍 حلو!","🎯 ممتاز!"][st-1];$("res").style.animation="none";void $("res").offsetWidth;$("res").style.animation=""}
+    requestAnimationFrame(()=>$("beam").style.setProperty("--a",Math.max(-18,Math.min(18,(rr-l)/fruit.w*60))+"deg"));
+    $("next").textContent=(r==ROUNDS-1&&p==1)?"النتيجة النهائية":"التالي";
+  },700);
+}
+
+/* ---------- الانتقال للدور التالي ---------- */
+function advance(f){
+  if(p==0){p=1}else{p=0;r++;if(r>=ROUNDS)return end();newFruit(f)}
+  show();
+}
+function hostAdvance(){ // المضيف هو من يقرر الفاكهة الجديدة
+  const f=p==1?pick():null;
+  if(conn)conn.send({t:"adv",s:step(),f});
+  advance(f);
+}
+$("next").onclick=()=>{
+  if(mode=="local")return advance(p==1?pick():null);
+  if(me==0)hostAdvance();else conn.send({t:"nreq",s:step()});
+};
+
+/* ---------- الأونلاين (PeerJS) ---------- */
+const st=t=>$("st").textContent=t;
+const rcode=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<4;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
+function hookConn(c){
+  conn=c;
+  c.on("open",()=>c.send({t:"hi",n:$("myn").value||"لاعب"}));
+  c.on("data",onMsg);
+  c.on("close",()=>{if(!over){alert("انقطع الاتصال باللاعب الآخر");location.reload()}});
+}
+function onMsg(m){
+  if(m.t=="hi"&&me==0){ // وصل الضيف: المضيف يبدأ الجولة
+    names=[$("myn").value||"لاعب",m.n];
+    const f=pick();newFruit(f);
+    conn.send({t:"start",names,f});begin();
+  }else if(m.t=="start"){names=m.names;newFruit(m.f);begin()}
+  else if(m.t=="cut"&&m.s==step()&&!cutDone)doCut(m.pts,{l:m.l});
+  else if(m.t=="nreq"&&me==0&&m.s==step())hostAdvance();
+  else if(m.t=="adv"&&m.s==step())advance(m.f);
+}
+$("mk").onclick=()=>{
+  mode="net";me=0;$("mk").disabled=$("jn").disabled=true;st("جاري إنشاء الغرفة...");
+  const make=()=>{
+    const code=rcode();peer=new Peer(PID+code);
+    peer.on("open",()=>{$("codeShow").textContent=code;$("wait").classList.remove("hide");st("")});
+    peer.on("connection",c=>{if(conn)return c.close();hookConn(c)});
+    peer.on("error",e=>{if(e.type=="unavailable-id")make();else{st("تعذّر الاتصال بالسيرفر، حاول مرة ثانية");$("mk").disabled=$("jn").disabled=false}});
+  };make();
+};
+$("jn").onclick=()=>{
+  const code=($("rc").value||"").trim().toUpperCase();
+  if(code.length!=4)return st("اكتب رمز الغرفة (4 خانات)");
+  mode="net";me=1;$("mk").disabled=$("jn").disabled=true;st("جاري الاتصال...");
+  peer=new Peer();
+  peer.on("open",()=>hookConn(peer.connect(PID+code,{reliable:true})));
+  peer.on("error",e=>{st(e.type=="peer-unavailable"?"الغرفة غير موجودة، تأكد من الرمز":"تعذّر الاتصال، حاول مرة ثانية");$("mk").disabled=$("jn").disabled=false});
+};
+
+/* ---------- المؤثرات والنهاية ---------- */
+function burst(x,y){for(let i=0;i<14;i++){const e=document.createElement("i");e.className="pt";e.style.left=x+"px";e.style.top=y+"px";const a=Math.random()*6.28,d=40+Math.random()*60;e.style.setProperty("--dx",Math.cos(a)*d+"px");e.style.setProperty("--dy",Math.sin(a)*d+"px");box.appendChild(e);setTimeout(()=>e.remove(),750)}}
+function confetti(){const E=["🎉","⭐","🍉","🍊","🍎","✨","🍌"];for(let i=0;i<36;i++){const e=document.createElement("div");e.className="cf";e.textContent=E[i%E.length];e.style.left=Math.random()*100+"vw";e.style.animationDelay=Math.random()*1.5+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),5200)}}
+function end(){
+  over=true;
+  const tie=tot[0]==tot[1],wi=tot[0]<tot[1]?0:1;
+  $("game").innerHTML='<div class="card"><div class="win">'+(tie?"🤝":"🏆")+'</div><h2>'+(tie?"تعادل!":"الفائز: "+names[wi]+" "+(wi?"🐼":"🦊"))+'</h2><p class="sub">'+names[0]+" 🦊: "+tot[0]+' غ فرق<br>'+names[1]+" 🐼: "+tot[1]+' غ فرق</p><button onclick="location.reload()">🔄 العب مرة ثانية</button></div>';
+  confetti();
+}
+</script>
+</body>
+</html>
